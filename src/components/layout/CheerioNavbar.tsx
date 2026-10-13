@@ -4,6 +4,7 @@ import { FileText, Smartphone, Sparkles, LayoutDashboard, Globe } from 'lucide-r
 interface CheerioNavbarProps {
   onOpenPmDrawer: () => void
   onOpenWizard: () => void
+  onOpenTour?: () => void
   onToggleDemoError: () => void
   isErrorActive: boolean
   currentView: 'WEBSITE' | 'PORTAL'
@@ -13,6 +14,7 @@ interface CheerioNavbarProps {
 export const CheerioNavbar: React.FC<CheerioNavbarProps> = ({
   onOpenPmDrawer,
   onOpenWizard,
+  onOpenTour,
   onToggleDemoError,
   isErrorActive,
   currentView,
@@ -80,6 +82,15 @@ export const CheerioNavbar: React.FC<CheerioNavbarProps> = ({
             <Smartphone className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Demo State:</span>
             <span>{isErrorActive ? '⚠️ Error' : 'Normal'}</span>
+          </button>
+
+          {/* Recruiter 60s Tour Button */}
+          <button
+            onClick={onOpenTour}
+            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all hover:scale-105"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+            <span>Recruiter Tour</span>
           </button>
 
           {/* PM Evaluator Console Trigger */}

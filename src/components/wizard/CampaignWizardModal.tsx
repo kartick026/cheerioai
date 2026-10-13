@@ -24,6 +24,7 @@ import {
 import { PhoneMockup } from '../preview/PhoneMockup'
 import { generateWhatsAppCopy } from '../../services/geminiService'
 import { validateTemplateContent, applyOptOutFix } from '../../utils/templateValidation'
+import { playSuccessChime } from '../../utils/audioFeedback'
 import { DEFAULT_CAMPAIGN_CONFIG, UI_TIMINGS } from '../../config/productConfig'
 
 export interface ActivatedCampaignPayload {
@@ -108,6 +109,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({
     if (result.applied) {
       setBodyText(result.updatedText)
       setFixFeedback({ applied: true, message: result.message })
+      playSuccessChime()
       onApplyVerifiedFix()
     } else {
       setFixFeedback({ applied: false, message: result.message })
@@ -659,6 +661,7 @@ export const CampaignWizardModal: React.FC<CampaignWizardModalProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  playSuccessChime()
                   onSuccessActivate({
                     name: `${productName} Replenishment Flow`,
                     templateBody: bodyText,

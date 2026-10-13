@@ -4,11 +4,13 @@ import { Sparkles, FileText, PlayCircle, HelpCircle, CheckCircle2, ArrowRight, D
 interface InterviewerGuideBannerProps {
   onStartDemo: () => void
   onOpenPmDock: () => void
+  onOpenTour?: () => void
 }
 
 export const InterviewerGuideBanner: React.FC<InterviewerGuideBannerProps> = ({
   onStartDemo,
-  onOpenPmDock
+  onOpenPmDock,
+  onOpenTour
 }) => {
   return (
     <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-10 mt-6">
@@ -41,7 +43,15 @@ export const InterviewerGuideBanner: React.FC<InterviewerGuideBannerProps> = ({
         </div>
 
         {/* Right: Quick-Start Interviewer Buttons */}
-        <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto shrink-0">
+          <button
+            onClick={onOpenTour}
+            className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-105"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+            <span>⚡ Recruiter 60s Tour</span>
+          </button>
+
           <button
             onClick={onStartDemo}
             className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5"
@@ -55,7 +65,7 @@ export const InterviewerGuideBanner: React.FC<InterviewerGuideBannerProps> = ({
             className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
           >
             <FileText className="w-4 h-4 text-purple-200" />
-            <span>Open PM Rubric (Q1-Q6)</span>
+            <span>PM Rubric (Q1-Q6)</span>
           </button>
         </div>
 

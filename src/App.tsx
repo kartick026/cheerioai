@@ -14,6 +14,7 @@ import { CampaignWizardModal, ActivatedCampaignPayload } from './components/wiza
 import { SupportHandoffModal } from './components/escalation/SupportHandoffModal'
 import { ActivationSuccessModal } from './components/wizard/ActivationSuccessModal'
 import { PmEvaluationDrawer } from './components/pm-dock/PmEvaluationDrawer'
+import { RecruiterTourModal } from './components/modals/RecruiterTourModal'
 import { AURA_SKINCARE_PROFILE, TOP_5_SUPPORT_ISSUES, DEFAULT_CAMPAIGNS } from './data/mockData'
 import { SupportIssue, BusinessProfile, CampaignRecord, EscalationDossier } from './types'
 import { UI_TIMINGS } from './config/productConfig'
@@ -30,6 +31,7 @@ export function App() {
   const [isHandoffOpen, setIsHandoffOpen] = useState<boolean>(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false)
   const [isPmDrawerOpen, setIsPmDrawerOpen] = useState<boolean>(false)
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(false)
   
   // Wizard draft state for editing/resuming
   const [wizardInitialStep, setWizardInitialStep] = useState<number>(1)
@@ -208,6 +210,7 @@ export function App() {
       <CheerioNavbar
         onOpenPmDrawer={() => setIsPmDrawerOpen(true)}
         onOpenWizard={handleStartSetup}
+        onOpenTour={() => setIsTourOpen(true)}
         onToggleDemoError={() => {
           setIsErrorActive(!isErrorActive)
           showToast(isErrorActive ? 'Simulated error disabled.' : '⚠️ Simulated Meta Compliance Error enabled.')
@@ -221,6 +224,7 @@ export function App() {
       <InterviewerGuideBanner
         onStartDemo={handleStartSetup}
         onOpenPmDock={() => setIsPmDrawerOpen(true)}
+        onOpenTour={() => setIsTourOpen(true)}
       />
 
       {/* Toast Feedback */}
@@ -368,6 +372,15 @@ export function App() {
           showToast(isErrorActive ? 'Simulated error disabled.' : '⚠️ Simulated error enabled.')
         }}
         isErrorActive={isErrorActive}
+      />
+
+      {/* Recruiter & Evaluator 60-Second Fast Tour Modal */}
+      <RecruiterTourModal
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onLaunchWizard={handleStartSetup}
+        onOpenHandoff={() => setIsHandoffOpen(true)}
+        onOpenPmDock={() => setIsPmDrawerOpen(true)}
       />
 
     </div>
