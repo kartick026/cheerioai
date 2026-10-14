@@ -225,6 +225,7 @@ export function App() {
         onStartDemo={handleStartSetup}
         onOpenPmDock={() => setIsPmDrawerOpen(true)}
         onOpenTour={() => setIsTourOpen(true)}
+        isDbConnected={isDbConnected}
       />
 
       {/* Toast Feedback */}

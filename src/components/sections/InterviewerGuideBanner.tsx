@@ -5,12 +5,14 @@ interface InterviewerGuideBannerProps {
   onStartDemo: () => void
   onOpenPmDock: () => void
   onOpenTour?: () => void
+  isDbConnected?: boolean
 }
 
 export const InterviewerGuideBanner: React.FC<InterviewerGuideBannerProps> = ({
   onStartDemo,
   onOpenPmDock,
-  onOpenTour
+  onOpenTour,
+  isDbConnected = false
 }) => {
   return (
     <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-10 mt-6">
@@ -30,10 +32,10 @@ export const InterviewerGuideBanner: React.FC<InterviewerGuideBannerProps> = ({
                 Cheerio Product Assignment (Assignment A)
               </span>
               <span className="text-xs text-slate-300 font-medium">Candidate: <strong className="text-white">Kartick</strong></span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-beacon shrink-0" />
-                <Database className="w-3 h-3 text-emerald-400" />
-                <span>Neon PostgreSQL (GORM): Connected</span>
+              <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${isDbConnected ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isDbConnected ? 'bg-emerald-400 animate-beacon' : 'bg-amber-400'} shrink-0`} />
+                <Database className="w-3 h-3" />
+                <span>{isDbConnected ? 'Neon PostgreSQL (GORM): Connected' : 'Local Database Cache'}</span>
               </span>
             </div>
             <p className="text-xs text-slate-200 mt-1.5 font-medium leading-relaxed">
