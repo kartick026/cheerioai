@@ -54,6 +54,10 @@ export const FINANCIAL_BENCHMARKS = {
   MIN_SSRR_ALERT_THRESHOLD_PERCENT: 50, // Flag if SSRR drops below 50% in any 48-hr window
   MAX_REPEAT_TICKET_RATE_PERCENT: 5,   // Flag if repeat tickets exceed 5%
   SESSION_TOKEN_KILLSWITCH: 10_000,    // Hard killswitch to prevent infinite loops
+
+  // Production Infrastructure & Multi-Turn Overhead
+  MULTI_TURN_BUFFER_FACTOR: 1.5,       // 1.5x token multiplier for multi-turn user troubleshooting
+  SERVERLESS_HOSTING_MONTHLY: 25.00,   // $25/month for Go container + Redis rate limiter
 } as const
 
 /**

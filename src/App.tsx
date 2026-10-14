@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { CheerioNavbar } from './components/layout/CheerioNavbar'
 import { InterviewerGuideBanner } from './components/sections/InterviewerGuideBanner'
 import { CheerioHero } from './components/sections/CheerioHero'
@@ -7,19 +7,43 @@ import { AskCheerioSection } from './components/sections/AskCheerioSection'
 import { WorkflowSection } from './components/sections/WorkflowSection'
 import { IntegrationsSection } from './components/sections/IntegrationsSection'
 import { ComparisonSection } from './components/sections/ComparisonSection'
-import { ProductWalkthroughVideo } from './components/video/ProductWalkthroughVideo'
 import { ProblemSolutionTimeline } from './components/sections/ProblemSolutionTimeline'
 import { InAppPortal } from './components/portal/InAppPortal'
-import { CampaignWizardModal, ActivatedCampaignPayload } from './components/wizard/CampaignWizardModal'
-import { SupportHandoffModal } from './components/escalation/SupportHandoffModal'
-import { ActivationSuccessModal } from './components/wizard/ActivationSuccessModal'
-import { PmEvaluationDrawer } from './components/pm-dock/PmEvaluationDrawer'
-import { RecruiterTourModal } from './components/modals/RecruiterTourModal'
+import { ActivatedCampaignPayload } from './components/wizard/CampaignWizardModal'
 import { AURA_SKINCARE_PROFILE, TOP_5_SUPPORT_ISSUES, DEFAULT_CAMPAIGNS } from './data/mockData'
 import { SupportIssue, BusinessProfile, CampaignRecord, EscalationDossier } from './types'
 import { UI_TIMINGS } from './config/productConfig'
-import { checkBackendHealth, fetchBusinessProfile, logDiagnosticEvent } from './services/apiService'
-import { Sparkles, FileText, CheckCircle2, ArrowUpRight } from 'lucide-react'
+import {
+  checkBackendHealth,
+  fetchBusinessProfile,
+  fetchCampaigns,
+  persistCampaign,
+  logDiagnosticEvent,
+} from './services/apiService'
+import { Sparkles, CheckCircle2, ArrowUpRight } from 'lucide-react'
+
+// Code-split heavy interactive modals and video scenes to optimize initial load & bundle size
+const ProductWalkthroughVideo = lazy(() =>
+  import('./components/video/ProductWalkthroughVideo').then((m) => ({ default: m.ProductWalkthroughVideo }))
+)
+const CampaignWizardModal = lazy(() =>
+  import('./components/wizard/CampaignWizardModal').then((m) => ({ default: m.CampaignWizardModal }))
+)
+const SupportHandoffModal = lazy(() =>
+  import('./components/escalation/SupportHandoffModal').then((m) => ({ default: m.SupportHandoffModal }))
+)
+const ActivationSuccessModal = lazy(() =>
+  import('./components/wizard/ActivationSuccessModal').then((m) => ({ default: m.ActivationSuccessModal }))
+)
+const PmEvaluationDrawer = lazy(() =>
+  import('./components/pm-dock/PmEvaluationDrawer').then((m) => ({ default: m.PmEvaluationDrawer }))
+)
+const RecruiterTourModal = lazy(() =>
+  import('./components/modals/RecruiterTourModal').then((m) => ({ default: m.RecruiterTourModal }))
+)
+const IssueResolutionModal = lazy(() =>
+  import('./components/modals/IssueResolutionModal').then((m) => ({ default: m.IssueResolutionModal }))
+)
 
 export function App() {
   const [profile, setProfile] = useState<BusinessProfile>(AURA_SKINCARE_PROFILE)
@@ -27,12 +51,15 @@ export function App() {
   const [activeTicket, setActiveTicket] = useState<EscalationDossier | null>(null)
   const [isDbConnected, setIsDbConnected] = useState<boolean>(false)
   const [currentView, setCurrentView] = useState<'WEBSITE' | 'PORTAL'>('WEBSITE')
+  const [isEvaluatorMode, setIsEvaluatorMode] = useState<boolean>(true)
+
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
   const [isHandoffOpen, setIsHandoffOpen] = useState<boolean>(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false)
   const [isPmDrawerOpen, setIsPmDrawerOpen] = useState<boolean>(false)
   const [isTourOpen, setIsTourOpen] = useState<boolean>(false)
-  
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState<boolean>(false)
+
   // Wizard draft state for editing/resuming
   const [wizardInitialStep, setWizardInitialStep] = useState<number>(1)
   const [wizardDraft, setWizardDraft] = useState<Partial<ActivatedCampaignPayload> | undefined>(undefined)
@@ -55,6 +82,10 @@ export function App() {
         const { profile: liveProfile } = await fetchBusinessProfile()
         if (isMounted && liveProfile) {
           setProfile(liveProfile)
+        }
+        const { campaigns: liveCampaigns } = await fetchCampaigns()
+        if (isMounted && liveCampaigns && liveCampaigns.length > 0) {
+          setCampaigns(liveCampaigns)
         }
       }
     }
@@ -89,22 +120,26 @@ export function App() {
 
   const handleApplyVerifiedFix = () => {
     setIsErrorActive(false)
-    setCampaigns(prev => prev.map(c => {
-      if (c.status === 'DRAFT_ROADBLOCK') {
-        return {
-          ...c,
-          status: 'DRAFT_READY',
-          activeRoadblock: undefined,
-          lastUpdated: 'Just now'
+    setCampaigns((prev) =>
+      prev.map((c) => {
+        if (c.status === 'DRAFT_ROADBLOCK') {
+          const updated = {
+            ...c,
+            status: 'DRAFT_READY' as const,
+            activeRoadblock: undefined,
+            lastUpdated: 'Just now',
+          }
+          persistCampaign(updated)
+          return updated
         }
-      }
-      return c
-    }))
+        return c
+      })
+    )
     logDiagnosticEvent({
       userQuery: 'Apply Verified Fix: WhatsApp opt-out compliance restored',
       errorCode: activeIssue?.code || 'META_TEMPLATE_REJECT_OPT_OUT',
       isResolved: true,
-      resolvedBy: 'FixFlow 1-Click Autonomous Healing Engine'
+      resolvedBy: 'FixFlow 1-Click Autonomous Healing Engine',
     })
     showToast('✨ FixFlow Verified Solution Applied: WhatsApp opt-out compliance restored!')
   }
@@ -112,15 +147,17 @@ export function App() {
   const handleSuccessActivate = (payload: ActivatedCampaignPayload) => {
     setIsWizardOpen(false)
     setIsSuccessOpen(true)
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      activeAutomations: prev.activeAutomations + 1
+      activeAutomations: prev.activeAutomations + 1,
     }))
-    setCampaigns(prev => {
-      const idx = prev.findIndex(c => c.id === 'camp-replenish-1' || c.status === 'DRAFT_ROADBLOCK' || c.status === 'DRAFT_READY')
+    setCampaigns((prev) => {
+      const idx = prev.findIndex(
+        (c) => c.id === 'camp-replenish-1' || c.status === 'DRAFT_ROADBLOCK' || c.status === 'DRAFT_READY'
+      )
       if (idx !== -1) {
         const updated = [...prev]
-        updated[idx] = {
+        const activated: CampaignRecord = {
           ...updated[idx],
           name: payload.name,
           status: 'ACTIVE',
@@ -129,8 +166,10 @@ export function App() {
           templateBody: payload.templateBody,
           productName: payload.productName,
           discountCode: payload.discountCode,
-          activeRoadblock: undefined
+          activeRoadblock: undefined,
         }
+        updated[idx] = activated
+        persistCampaign(activated)
         return updated
       }
       const newCampaign: CampaignRecord = {
@@ -144,40 +183,43 @@ export function App() {
         discountCode: payload.discountCode,
         status: 'ACTIVE',
         lastUpdated: 'Just now',
-        targetAudienceCount: 1420
+        targetAudienceCount: 1420,
       }
+      persistCampaign(newCampaign)
       return [newCampaign, ...prev]
     })
     logDiagnosticEvent({
       userQuery: `Campaign Activated: ${payload.name}`,
       errorCode: 'NONE',
       isResolved: true,
-      resolvedBy: 'Maya Sharma via FixFlow Setup Wizard'
+      resolvedBy: 'Maya Sharma via FixFlow Setup Wizard',
     })
     showToast(`🚀 Campaign "${payload.name}" is now live!`)
   }
 
   const handleDispatchTicket = (dossier: EscalationDossier) => {
     setActiveTicket(dossier)
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      openSupportTickets: prev.openSupportTickets + 1
+      openSupportTickets: prev.openSupportTickets + 1,
     }))
-    setCampaigns(prev => prev.map(c => {
-      if (c.status === 'DRAFT_ROADBLOCK' || c.id === 'camp-replenish-1') {
-        return {
-          ...c,
-          activeRoadblock: `Escalated #${dossier.ticketId}: Assigned to ${dossier.assignedAgent}`,
-          lastUpdated: 'Just now'
+    setCampaigns((prev) =>
+      prev.map((c) => {
+        if (c.status === 'DRAFT_ROADBLOCK' || c.id === 'camp-replenish-1') {
+          return {
+            ...c,
+            activeRoadblock: `Escalated #${dossier.ticketId}: Assigned to ${dossier.assignedAgent}`,
+            lastUpdated: 'Just now',
+          }
         }
-      }
-      return c
-    }))
+        return c
+      })
+    )
     logDiagnosticEvent({
       userQuery: `Zero-Repetition Escalation Dispatched: ${dossier.ticketId}`,
       errorCode: dossier.errorCode,
       isResolved: false,
-      resolvedBy: `Queued for ${dossier.assignedAgent}`
+      resolvedBy: `Queued for ${dossier.assignedAgent}`,
     })
     showToast(`🎫 Support Ticket #${dossier.ticketId} created with complete system trace!`)
   }
@@ -186,10 +228,19 @@ export function App() {
     setIsHandoffOpen(true)
   }
 
+  // Contextual issue routing: Template rejection opens Wizard; other 4 issues open dedicated resolution modal
   const handleSelectIssue = (issue: SupportIssue) => {
     setActiveIssue(issue)
-    setIsErrorActive(true)
-    setIsWizardOpen(true)
+    if (
+      issue.category === 'TEMPLATE_REJECTION' ||
+      issue.code.includes('132001') ||
+      issue.code.includes('OPT_OUT')
+    ) {
+      setIsErrorActive(true)
+      setIsWizardOpen(true)
+    } else {
+      setIsIssueModalOpen(true)
+    }
   }
 
   const handleResetDemo = () => {
@@ -206,7 +257,7 @@ export function App() {
   return (
     <div className="cheerio-bg min-h-screen text-slate-900 font-sans selection:bg-purple-500/20 selection:text-purple-900">
       
-      {/* Top Floating Cheerio Pill Navbar with Perspective Switcher */}
+      {/* Top Floating Cheerio Pill Navbar with Perspective Switcher & Evaluator Toggle */}
       <CheerioNavbar
         onOpenPmDrawer={() => setIsPmDrawerOpen(true)}
         onOpenWizard={handleStartSetup}
@@ -218,15 +269,19 @@ export function App() {
         isErrorActive={isErrorActive}
         currentView={currentView}
         onToggleView={(view) => setCurrentView(view)}
+        isEvaluatorMode={isEvaluatorMode}
+        onToggleEvaluatorMode={() => setIsEvaluatorMode(!isEvaluatorMode)}
       />
 
-      {/* Evaluator Quick-Start Banner */}
-      <InterviewerGuideBanner
-        onStartDemo={handleStartSetup}
-        onOpenPmDock={() => setIsPmDrawerOpen(true)}
-        onOpenTour={() => setIsTourOpen(true)}
-        isDbConnected={isDbConnected}
-      />
+      {/* Evaluator Quick-Start Banner (Visible only in Evaluator Mode) */}
+      {isEvaluatorMode && (
+        <InterviewerGuideBanner
+          onStartDemo={handleStartSetup}
+          onOpenPmDock={() => setIsPmDrawerOpen(true)}
+          onOpenTour={() => setIsTourOpen(true)}
+          isDbConnected={isDbConnected}
+        />
+      )}
 
       {/* Toast Feedback */}
       {toastMessage && (
@@ -246,44 +301,43 @@ export function App() {
           />
 
           {/* Section 2: Interactive Product Walkthrough Video Player (165s / 2:45) */}
-          <ProductWalkthroughVideo
-            onOpenWizard={handleStartSetup}
-          />
+          <Suspense fallback={<div className="h-96 flex items-center justify-center text-slate-400">Loading Walkthrough Player...</div>}>
+            <ProductWalkthroughVideo onOpenWizard={handleStartSetup} />
+          </Suspense>
 
-          {/* Section 3: 3-Step Practical Executive Summary Cards */}
+          {/* Section 3: Core Journey Cards */}
           <CoreJourneyCards
             onOpenWizard={handleStartSetup}
             onOpenPmDock={() => setIsPmDrawerOpen(true)}
           />
 
-          {/* Section 4: Step-by-Step Problem & Solution Timeline */}
+          {/* Section 4: Problem vs Solution Timeline */}
           <ProblemSolutionTimeline
             onOpenWizard={handleStartSetup}
             onOpenPmDock={() => setIsPmDrawerOpen(true)}
           />
 
-          {/* Section 5: "Ask anything about Cheerio AI" Interactive Roadblock Diagnostic */}
+          {/* Section 5: Ask Cheerio Autonomous Diagnostics */}
           <AskCheerioSection
             onSelectIssue={handleSelectIssue}
             onOpenWizard={handleStartSetup}
           />
 
-          {/* Section 4: "Workflows that adapt to how your business runs" */}
+          {/* Section 6: Workflow Interactive Demonstration */}
           <WorkflowSection
             onOpenWizard={handleStartSetup}
             isErrorActive={isErrorActive}
           />
 
-          {/* Section 5: "8000+ integrations that fit into your stack" */}
+          {/* Section 7: Integrations (Shopify & Meta) */}
           <IntegrationsSection />
 
-          {/* Section 6: Traditional Support Tools vs Cheerio AI */}
+          {/* Section 8: Feature Comparison Matrix */}
           <ComparisonSection
             onOpenWizard={handleStartSetup}
           />
         </main>
       ) : (
-        /* Maya's In-App SaaS Portal */
         <main className="pb-16">
           <InAppPortal
             profile={profile}
@@ -316,73 +370,93 @@ export function App() {
         </div>
       </footer>
 
-      {/* Floating Bottom-Right PM Evaluator Dock Trigger */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          onClick={() => setIsPmDrawerOpen(true)}
-          className="cheerio-btn-primary px-4 py-3 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 pulse-glow"
-        >
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-          </div>
-          <div className="text-left pr-1">
-            <div className="text-[10px] text-purple-200 uppercase tracking-wider font-semibold">Evaluator Console</div>
-            <div className="text-xs text-white">Interactive Model & Rubric ($18k/mo Saved)</div>
-          </div>
-          <ArrowUpRight className="w-4 h-4 text-purple-200" />
-        </button>
-      </div>
+      {/* Floating Bottom-Right PM Evaluator Dock Trigger (Visible only in Evaluator Mode) */}
+      {isEvaluatorMode && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            onClick={() => setIsPmDrawerOpen(true)}
+            className="cheerio-btn-primary px-4 py-3 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 pulse-glow"
+          >
+            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            <div className="text-left pr-1">
+              <div className="text-[10px] text-purple-200 uppercase tracking-wider font-semibold">Evaluator Console</div>
+              <div className="text-xs text-white">Interactive Model & Rubric ($18k/mo Saved)</div>
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-purple-200" />
+          </button>
+        </div>
+      )}
 
-      {/* 4-Step Interactive Setup Wizard with Live Phone Preview */}
-      <CampaignWizardModal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        onSuccessActivate={handleSuccessActivate}
-        onOpenHandoff={() => {
-          setIsWizardOpen(false)
-          setIsHandoffOpen(true)
-        }}
-        isErrorActive={isErrorActive}
-        onApplyVerifiedFix={handleApplyVerifiedFix}
-        initialStep={wizardInitialStep}
-        initialDraft={wizardDraft}
-      />
+      {/* Lazy Suspense Wrapper for Modals */}
+      <Suspense fallback={null}>
+        {/* 4-Step Interactive Setup Wizard with Live Phone Preview */}
+        <CampaignWizardModal
+          isOpen={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
+          onSuccessActivate={handleSuccessActivate}
+          onOpenHandoff={() => {
+            setIsWizardOpen(false)
+            setIsHandoffOpen(true)
+          }}
+          isErrorActive={isErrorActive}
+          onApplyVerifiedFix={handleApplyVerifiedFix}
+          initialStep={wizardInitialStep}
+          initialDraft={wizardDraft}
+        />
 
-      {/* Zero-Repetition Human Support Handoff Modal */}
-      <SupportHandoffModal
-        isOpen={isHandoffOpen}
-        onClose={() => setIsHandoffOpen(false)}
-        activeIssue={activeIssue}
-        existingTicket={activeTicket}
-        onDispatchTicket={handleDispatchTicket}
-      />
+        {/* Dedicated Contextual Resolution Modal for Non-Campaign Issues */}
+        <IssueResolutionModal
+          isOpen={isIssueModalOpen}
+          onClose={() => setIsIssueModalOpen(false)}
+          issue={activeIssue}
+          onOpenHandoff={() => {
+            setIsIssueModalOpen(false)
+            setIsHandoffOpen(true)
+          }}
+          onResolutionSuccess={(code) => {
+            showToast(`✨ FixFlow verified fix applied for ${code}!`)
+            setIsErrorActive(false)
+          }}
+        />
 
-      {/* Celebratory Activation Modal */}
-      <ActivationSuccessModal
-        isOpen={isSuccessOpen}
-        onClose={() => setIsSuccessOpen(false)}
-      />
+        {/* Zero-Repetition Human Support Handoff Modal */}
+        <SupportHandoffModal
+          isOpen={isHandoffOpen}
+          onClose={() => setIsHandoffOpen(false)}
+          activeIssue={activeIssue}
+          existingTicket={activeTicket}
+          onDispatchTicket={handleDispatchTicket}
+        />
 
-      {/* PM Evaluation Console Drawer */}
-      <PmEvaluationDrawer
-        isOpen={isPmDrawerOpen}
-        onClose={() => setIsPmDrawerOpen(false)}
-        onResetDemo={handleResetDemo}
-        onToggleError={() => {
-          setIsErrorActive(!isErrorActive)
-          showToast(isErrorActive ? 'Simulated error disabled.' : '⚠️ Simulated error enabled.')
-        }}
-        isErrorActive={isErrorActive}
-      />
+        {/* Celebratory Activation Modal */}
+        <ActivationSuccessModal
+          isOpen={isSuccessOpen}
+          onClose={() => setIsSuccessOpen(false)}
+        />
 
-      {/* Recruiter & Evaluator 60-Second Fast Tour Modal */}
-      <RecruiterTourModal
-        isOpen={isTourOpen}
-        onClose={() => setIsTourOpen(false)}
-        onLaunchWizard={handleStartSetup}
-        onOpenHandoff={() => setIsHandoffOpen(true)}
-        onOpenPmDock={() => setIsPmDrawerOpen(true)}
-      />
+        {/* PM Evaluation Console Drawer */}
+        <PmEvaluationDrawer
+          isOpen={isPmDrawerOpen}
+          onClose={() => setIsPmDrawerOpen(false)}
+          onResetDemo={handleResetDemo}
+          onToggleError={() => {
+            setIsErrorActive(!isErrorActive)
+            showToast(isErrorActive ? 'Simulated error disabled.' : '⚠️ Simulated error enabled.')
+          }}
+          isErrorActive={isErrorActive}
+        />
+
+        {/* Recruiter & Evaluator 60-Second Fast Tour Modal */}
+        <RecruiterTourModal
+          isOpen={isTourOpen}
+          onClose={() => setIsTourOpen(false)}
+          onLaunchWizard={handleStartSetup}
+          onOpenHandoff={() => setIsHandoffOpen(true)}
+          onOpenPmDock={() => setIsPmDrawerOpen(true)}
+        />
+      </Suspense>
 
     </div>
   )

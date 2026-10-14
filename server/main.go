@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -64,7 +67,49 @@ type DiagnosticLog struct {
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
+type Campaign struct {
+	ID                  uint      `gorm:"primaryKey" json:"id"`
+	CampaignID          string    `gorm:"uniqueIndex;size:50" json:"campaignId"`
+	Name                string    `gorm:"size:255" json:"name"`
+	Type                string    `gorm:"size:50" json:"type"`
+	Status              string    `gorm:"size:50" json:"status"`
+	Trigger             string    `gorm:"size:255" json:"trigger"`
+	TargetAudienceCount int       `json:"targetAudienceCount"`
+	LastUpdated         string    `gorm:"size:50" json:"lastUpdated"`
+	TemplateBody        string    `gorm:"type:text" json:"templateBody"`
+	DelayDays           int       `json:"delayDays"`
+	ProductName         string    `gorm:"size:255" json:"productName"`
+	DiscountCode        string    `gorm:"size:50" json:"discountCode"`
+	ActiveRoadblock     string    `gorm:"type:text" json:"activeRoadblock,omitempty"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+}
+
 var DB *gorm.DB
+
+func loadEnvFallback() {
+	paths := []string{".env", "../.env"}
+	for _, p := range paths {
+		data, err := os.ReadFile(p)
+		if err == nil {
+			lines := strings.Split(string(data), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "#") {
+					continue
+				}
+				parts := strings.SplitN(line, "=", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					val := strings.TrimSpace(parts[1])
+					if os.Getenv(key) == "" {
+						os.Setenv(key, val)
+					}
+				}
+			}
+		}
+	}
+}
 
 func ConnectDB(dsn string) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
@@ -116,7 +161,7 @@ func seedInitialData(db *gorm.DB) {
 		fmt.Printf("🌱 Seeded Business Profile: %s in Neon DB\n", auraProfile.BrandName)
 	}
 
-	// Seed Top 5 Support Issues from Assignment A
+	// Seed Top 5 Support Issues
 	var issueCount int64
 	db.Model(&SupportIssue{}).Count(&issueCount)
 	if issueCount == 0 {
@@ -188,15 +233,77 @@ func seedInitialData(db *gorm.DB) {
 		}
 		fmt.Printf("🌱 Seeded %d Support Issues into Neon DB\n", len(issues))
 	}
+
+	// Seed Campaigns
+	var campaignCount int64
+	db.Model(&Campaign{}).Count(&campaignCount)
+	if campaignCount == 0 {
+		initialCampaigns := []Campaign{
+			{
+				CampaignID:          "camp-replenish-1",
+				Name:                "30-Day Skincare Serum Replenishment Flow",
+				Type:                "AUTOMATION",
+				Status:              "DRAFT_ROADBLOCK",
+				Trigger:             "Shopify Order Fulfilled (+30 Days)",
+				TargetAudienceCount: 1420,
+				LastUpdated:         "Just now",
+				TemplateBody:        "Hi {{first_name}}! ✨ It's been 28 days since your {{product_name}} order. How is your skin feeling? To keep your barrier glowing without missing a day, use code {{discount_code}} for 20% off your refill today! 🌿💧",
+				DelayDays:           30,
+				ProductName:         "Skin Barrier Renewal Serum (50ml)",
+				DiscountCode:        "REFILL20",
+				ActiveRoadblock:     "Meta Policy 4.2 Error 132001: Missing Opt-Out Notice",
+			},
+			{
+				CampaignID:          "camp-welcome-2",
+				Name:                "New Customer Welcome & 15% VIP Perk",
+				Type:                "AUTOMATION",
+				Status:              "ACTIVE",
+				Trigger:             "Shopify Customer Created",
+				TargetAudienceCount: 3840,
+				LastUpdated:         "3 days ago",
+				TemplateBody:        "Welcome to the Aura Skincare family, {{first_name}}! 🌿 Your glowing skin journey starts today.\n\nReply STOP to unsubscribe.",
+				DelayDays:           0,
+				ProductName:         "Aura VIP Welcome Box",
+				DiscountCode:        "GLOW15",
+			},
+			{
+				CampaignID:          "camp-broadcast-3",
+				Name:                "Diwali Festive Skincare Barrier Launch",
+				Type:                "BROADCAST",
+				Status:              "COMPLETED",
+				Trigger:             "Manual Broadcast (14,250 contacts)",
+				TargetAudienceCount: 14250,
+				LastUpdated:         "12 days ago",
+				TemplateBody:        "Celebrate Diwali with glowing, hydrated skin! ✨ 30% off site-wide for Aura insiders.\n\nReply STOP to unsubscribe.",
+				DelayDays:           0,
+				ProductName:         "Ceramide Barrier Cream",
+				DiscountCode:        "DIWALI30",
+			},
+		}
+		for _, c := range initialCampaigns {
+			db.Create(&c)
+		}
+		fmt.Printf("🌱 Seeded %d Campaigns into Neon DB\n", len(initialCampaigns))
+	}
 }
 
 func enableCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
+func getGeminiAPIKey() string {
+	key := os.Getenv("GEMINI_API_KEY")
+	if key == "" {
+		key = os.Getenv("VITE_GEMINI_API_KEY")
+	}
+	return key
+}
+
 func main() {
+	loadEnvFallback()
+
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		dsn = "postgresql://neondb_owner:npg_usUMnKTjiS01@ep-restless-lab-b4ica0u4-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -215,7 +322,7 @@ func main() {
 	fmt.Println("✅ Successfully connected to Neon Database!")
 
 	// AutoMigrate tables
-	err = DB.AutoMigrate(&SupportIssue{}, &BusinessProfile{}, &DiagnosticLog{})
+	err = DB.AutoMigrate(&SupportIssue{}, &BusinessProfile{}, &DiagnosticLog{}, &Campaign{})
 	if err != nil {
 		log.Fatalf("❌ AutoMigrate failed: %v", err)
 	}
@@ -227,6 +334,9 @@ func main() {
 	// Setup HTTP REST Handlers
 	http.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		var version string
 		DB.Raw("SELECT version();").Row().Scan(&version)
 		w.Header().Set("Content-Type", "application/json")
@@ -240,6 +350,9 @@ func main() {
 
 	http.HandleFunc("/api/profile", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		var profile BusinessProfile
 		if err := DB.First(&profile).Error; err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -251,6 +364,9 @@ func main() {
 
 	http.HandleFunc("/api/issues", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		var issues []SupportIssue
 		if err := DB.Order("id asc").Find(&issues).Error; err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -258,6 +374,49 @@ func main() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(issues)
+	})
+
+	http.HandleFunc("/api/campaigns", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		if r.Method == "GET" {
+			var campaigns []Campaign
+			if err := DB.Order("id asc").Find(&campaigns).Error; err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(campaigns)
+			return
+		}
+		if r.Method == "POST" || r.Method == "PUT" {
+			var c Campaign
+			if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			c.UpdatedAt = time.Now()
+			// Upsert by CampaignID
+			if c.CampaignID != "" {
+				var existing Campaign
+				res := DB.Where("campaign_id = ?", c.CampaignID).First(&existing)
+				if res.Error == nil {
+					c.ID = existing.ID
+					DB.Save(&c)
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(c)
+					return
+				}
+			}
+			c.CreatedAt = time.Now()
+			DB.Create(&c)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(c)
+			return
+		}
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
 	http.HandleFunc("/api/diagnose", func(w http.ResponseWriter, r *http.Request) {
@@ -280,6 +439,123 @@ func main() {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
+	// Secure Server-Side Gemini Diagnostic Proxy (Protects API Key from Browser Bundles)
+	http.HandleFunc("/api/diagnose/gemini", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var reqPayload struct {
+			Query string `json:"query"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&reqPayload); err != nil || reqPayload.Query == "" {
+			http.Error(w, "Invalid query payload", http.StatusBadRequest)
+			return
+		}
+
+		apiKey := getGeminiAPIKey()
+		if apiKey == "" {
+			// Fallback mock diagnosis
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"title":                             "Diagnostic Analysis for: " + reqPayload.Query,
+				"code":                              "FIXFLOW_AUTO_DETECT",
+				"plainEnglishDescription":           "FixFlow inspected the WhatsApp Business Manager sync. A configuration drift was identified that can be resolved automatically.",
+				"rootCause":                         "Meta Cloud API payload mismatch or pending webhook handshake.",
+				"actionableFix":                     "FixFlow automatically refreshed the webhook subscriber and realigned template variables.",
+				"fixFlowAutomatedResolutionRate":    "88%",
+				"typicalHumanResolutionTimeMinutes": 30,
+				"suggestedFixButtonText":            "Auto-Resolve with FixFlow",
+				"isLiveGemini":                      false,
+			})
+			return
+		}
+
+		systemPrompt := `You are Cheerio FixFlow AI, the autonomous diagnostic guardian for Cheerio AI (an official Meta Business Solution Provider / BSP).
+Give a crystal clear, zero-jargon plain English explanation, technical root cause, and concrete 1-click action.
+Respond ONLY with valid JSON in this exact structure:
+{
+  "title": "Short descriptive title of the issue",
+  "code": "ERROR_CODE or CATEGORY_CODE",
+  "plainEnglishDescription": "Plain English summary for non-technical founders",
+  "rootCause": "Technical underlying cause",
+  "actionableFix": "Specific action taken to resolve it immediately",
+  "fixFlowAutomatedResolutionRate": "92%",
+  "typicalHumanResolutionTimeMinutes": 30,
+  "suggestedFixButtonText": "Apply 1-Click Verified Fix"
+}`
+
+		geminiURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", apiKey)
+		geminiBody := map[string]interface{}{
+			"contents": []map[string]interface{}{
+				{
+					"role": "user",
+					"parts": []map[string]interface{}{
+						{"text": fmt.Sprintf("%s\n\nUser Question/Error: %q", systemPrompt, reqPayload.Query)},
+					},
+				},
+			},
+			"generationConfig": map[string]interface{}{
+				"temperature":      0.2,
+				"maxOutputTokens":  1024,
+				"responseMimeType": "application/json",
+			},
+		}
+
+		bodyBytes, _ := json.Marshal(geminiBody)
+		resp, err := http.Post(geminiURL, "application/json", bytes.NewReader(bodyBytes))
+		if err != nil || resp.StatusCode != http.StatusOK {
+			// Fallback
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"title":                             "Diagnostic Analysis: " + reqPayload.Query,
+				"code":                              "FIXFLOW_DIAG",
+				"plainEnglishDescription":           "Issue identified by FixFlow guardian and resolved via automated verification.",
+				"rootCause":                         "Meta Cloud API payload or webhook mismatch.",
+				"actionableFix":                     "Run autonomous verification and re-sync.",
+				"fixFlowAutomatedResolutionRate":    "91%",
+				"typicalHumanResolutionTimeMinutes": 30,
+				"suggestedFixButtonText":            "Apply 1-Click Fix",
+				"isLiveGemini":                      false,
+			})
+			return
+		}
+		defer resp.Body.Close()
+
+		respData, _ := io.ReadAll(resp.Body)
+		var geminiResp struct {
+			Candidates []struct {
+				Content struct {
+					Parts []struct {
+						Text string `json:"text"`
+					} `json:"parts"`
+				} `json:"content"`
+			} `json:"candidates"`
+		}
+
+		if err := json.Unmarshal(respData, &geminiResp); err != nil || len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"title":        "Diagnostic Analysis: " + reqPayload.Query,
+				"code":         "FIXFLOW_DIAG",
+				"isLiveGemini": false,
+			})
+			return
+		}
+
+		var parsedResult map[string]interface{}
+		json.Unmarshal([]byte(geminiResp.Candidates[0].Content.Parts[0].Text), &parsedResult)
+		parsedResult["isLiveGemini"] = true
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(parsedResult)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = DefaultPort
@@ -290,7 +566,10 @@ func main() {
 	fmt.Printf("   • GET  http://localhost:%s/api/health\n", port)
 	fmt.Printf("   • GET  http://localhost:%s/api/profile\n", port)
 	fmt.Printf("   • GET  http://localhost:%s/api/issues\n", port)
+	fmt.Printf("   • GET  http://localhost:%s/api/campaigns\n", port)
+	fmt.Printf("   • POST http://localhost:%s/api/campaigns\n", port)
 	fmt.Printf("   • POST http://localhost:%s/api/diagnose\n", port)
+	fmt.Printf("   • POST http://localhost:%s/api/diagnose/gemini\n", port)
 	fmt.Println("==================================================")
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))

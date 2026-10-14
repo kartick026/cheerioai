@@ -11,6 +11,7 @@
 
 import { TOP_5_SUPPORT_ISSUES } from '../data/mockData'
 import { AI_CONFIG } from '../config/aiConfig'
+import { diagnoseViaBackendProxy } from './apiService'
 
 export interface GeminiDiagnosisResult {
   title: string
@@ -32,6 +33,26 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL
  * Diagnoses a user's support issue or error query using Gemini 3.8 Flash
  */
 export async function askGeminiFixFlow(userQuery: string): Promise<GeminiDiagnosisResult> {
+  // 1. Try secure Go Backend Proxy first (protects credentials server-side)
+  try {
+    const backendResult = await diagnoseViaBackendProxy(userQuery)
+    if (backendResult && backendResult.title) {
+      return {
+        title: backendResult.title,
+        code: backendResult.code || 'FIXFLOW_DIAG',
+        plainEnglishDescription: backendResult.plainEnglishDescription || '',
+        rootCause: backendResult.rootCause || '',
+        actionableFix: backendResult.actionableFix || '',
+        fixFlowAutomatedResolutionRate: backendResult.fixFlowAutomatedResolutionRate || '92%',
+        typicalHumanResolutionTimeMinutes: backendResult.typicalHumanResolutionTimeMinutes || 30,
+        suggestedFixButtonText: backendResult.suggestedFixButtonText || 'Apply Verified Fix',
+        isLiveGemini: backendResult.isLiveGemini ?? true,
+      }
+    }
+  } catch {
+    // Proceed to fallback
+  }
+
   const queryLower = userQuery.toLowerCase().trim()
 
   // Pre-check for local exact matches to ensure instant response if available

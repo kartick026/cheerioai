@@ -5,13 +5,14 @@
  * which is connected to the Neon Serverless PostgreSQL database.
  * 
  * Features:
- * - Real-time synchronization of BusinessProfile and SupportIssues
+ * - Real-time synchronization of BusinessProfile, SupportIssues, and Campaigns
  * - Diagnostic log persistence into PostgreSQL audit trail
- * - Graceful fallback to local mock fixtures if backend is offline (Rule 8 & Rule 6)
+ * - Secure server-side Gemini AI proxy execution (protects client-side API keys)
+ * - Graceful fallback to local mock fixtures if backend is offline
  */
 
-import { BusinessProfile, SupportIssue } from '../types'
-import { AURA_SKINCARE_PROFILE, TOP_5_SUPPORT_ISSUES } from '../data/mockData'
+import { BusinessProfile, SupportIssue, CampaignRecord } from '../types'
+import { AURA_SKINCARE_PROFILE, TOP_5_SUPPORT_ISSUES, DEFAULT_CAMPAIGNS } from '../data/mockData'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8080/api'
 
@@ -38,7 +39,7 @@ export async function checkBackendHealth(): Promise<{ isOnline: boolean; details
     if (!res.ok) return { isOnline: false }
     const details = await res.json()
     return { isOnline: true, details }
-  } catch (err) {
+  } catch {
     return { isOnline: false }
   }
 }
@@ -102,6 +103,84 @@ export async function fetchSupportIssues(): Promise<{ issues: SupportIssue[]; is
     return { issues: mappedIssues, isLiveDb: true }
   } catch {
     return { issues: TOP_5_SUPPORT_ISSUES, isLiveDb: false }
+  }
+}
+
+/**
+ * Fetches Campaigns directly from Neon PostgreSQL
+ */
+export async function fetchCampaigns(): Promise<{ campaigns: CampaignRecord[]; isLiveDb: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/campaigns`, { signal: AbortSignal.timeout(3000) })
+    if (!res.ok) return { campaigns: DEFAULT_CAMPAIGNS, isLiveDb: false }
+    const data = await res.json()
+    if (!Array.isArray(data) || data.length === 0) return { campaigns: DEFAULT_CAMPAIGNS, isLiveDb: false }
+    const mapped: CampaignRecord[] = data.map((c: any) => ({
+      id: c.campaignId || `camp-${c.id}`,
+      name: c.name,
+      type: c.type || 'AUTOMATION',
+      status: c.status,
+      trigger: c.trigger,
+      targetAudienceCount: c.targetAudienceCount || 1000,
+      lastUpdated: c.lastUpdated || 'Just now',
+      templateBody: c.templateBody || '',
+      delayDays: c.delayDays || 0,
+      productName: c.productName || 'Serum',
+      discountCode: c.discountCode || 'REFILL20',
+      activeRoadblock: c.activeRoadblock || undefined,
+    }))
+    return { campaigns: mapped, isLiveDb: true }
+  } catch {
+    return { campaigns: DEFAULT_CAMPAIGNS, isLiveDb: false }
+  }
+}
+
+/**
+ * Persists an activated or edited campaign directly to Neon PostgreSQL
+ */
+export async function persistCampaign(campaign: CampaignRecord): Promise<boolean> {
+  try {
+    const payload = {
+      campaignId: campaign.id,
+      name: campaign.name,
+      type: campaign.type,
+      status: campaign.status,
+      trigger: campaign.trigger,
+      targetAudienceCount: campaign.targetAudienceCount,
+      lastUpdated: campaign.lastUpdated,
+      templateBody: campaign.templateBody,
+      delayDays: campaign.delayDays,
+      productName: campaign.productName,
+      discountCode: campaign.discountCode,
+      activeRoadblock: campaign.activeRoadblock || '',
+    }
+    const res = await fetch(`${API_BASE_URL}/campaigns`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Executes Gemini diagnostics securely via the Go backend (protects API keys)
+ */
+export async function diagnoseViaBackendProxy(query: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/diagnose/gemini`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
   }
 }
 

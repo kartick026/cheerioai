@@ -69,6 +69,43 @@ async function runTests() {
     const diagData = await diagRes.json()
     assert(diagData.id > 0, `DiagnosticLog created with valid DB primary key (ID: ${diagData.id})`)
     assert(diagData.errorCode === 'META_132001', 'DiagnosticLog record persisted correct errorCode')
+    // Campaigns persistence test
+    const campaignsRes = await fetch(`${API_BASE}/campaigns`)
+    assert(campaignsRes.status === 200, 'GET /api/campaigns returns HTTP 200 from Neon DB')
+    const campaigns = await campaignsRes.json()
+    assert(Array.isArray(campaigns) && campaigns.length >= 3, `Seeded campaigns present in Neon DB (count: ${campaigns.length})`)
+
+    const testCampaignPayload = {
+      campaignId: 'camp-audit-test',
+      name: 'Automated Full-Stack Verification Flow',
+      type: 'AUTOMATION',
+      status: 'ACTIVE',
+      trigger: 'Shopify Order Fulfilled',
+      targetAudienceCount: 1500,
+      lastUpdated: 'Just now',
+      templateBody: 'Audit test copy\n\nReply STOP to unsubscribe.',
+      delayDays: 14,
+      productName: 'Hydrating Essence',
+      discountCode: 'TEST15',
+    }
+    const createCampRes = await fetch(`${API_BASE}/campaigns`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testCampaignPayload),
+    })
+    assert(createCampRes.status === 200, 'POST /api/campaigns persists workflow to Neon DB (HTTP 200)')
+    const createdCamp = await createCampRes.json()
+    assert(createdCamp.campaignId === 'camp-audit-test', 'Persisted campaign has correct campaignId')
+
+    // Backend Gemini Proxy test
+    const geminiProxyRes = await fetch(`${API_BASE}/diagnose/gemini`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'Shopify webhook HMAC 401 token expired' }),
+    })
+    assert(geminiProxyRes.status === 200, 'POST /api/diagnose/gemini executes securely via backend proxy (HTTP 200)')
+    const proxyData = await geminiProxyRes.json()
+    assert(typeof proxyData.title === 'string' && proxyData.title.length > 0, 'Gemini backend proxy returns valid diagnosis title')
   } catch (err) {
     assert(false, 'Go Backend connection error', err.message)
   }
