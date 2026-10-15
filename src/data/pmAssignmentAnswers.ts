@@ -139,10 +139,11 @@ export const PART_1_ANSWERS: AssignmentQuestionAnswer[] = [
 ]
 
 export const PART_3_AI_USAGE = {
+  chatLink: 'https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01',
   toolsUsed: [
     { tool: 'Google Gemini 3.8 Flash (Live API)', purpose: 'Real-time autonomous support diagnosis of custom queries and Meta-compliant WhatsApp copy generation' },
     { tool: 'Google Antigravity & LLMs', purpose: 'Full clickable prototype generation, TypeScript domain architecture, and state engine' },
-    { tool: 'ChatGPT (GPT-4o)', purpose: 'Product Manager roleplay, adversarial problem critique, and prioritization matrix' },
+    { tool: 'ChatGPT (GPT-4o)', purpose: 'Product Manager roleplay, adversarial problem critique, and prioritization matrix', link: 'https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01' },
     { tool: 'Google Sheets / Formulas', purpose: 'Unit economics, token cost models, and human support arbitrage calculations' }
   ],
   prompts: [
@@ -181,56 +182,60 @@ export const PART_3_AI_USAGE = {
 }
 
 export const PART_4_NUMBERS = {
+  sheetLink: 'https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1',
   sections: [
     {
-      heading: '1. Guesstimate: Support Volume & Self-Service Resolutions',
+      heading: '1. Reach & Adoption Model (from Google Sheet)',
       rows: [
-        { label: 'Active Cheerio Businesses', value: '5,000 businesses', note: 'Assignment baseline parameter' },
-        { label: 'Average Support Queries / Business / Month', value: '1.5 queries', note: 'Based on B2B marketing SaaS benchmarks' },
-        { label: 'Total Monthly Inbound Queries', value: '7,500 queries/mo', note: '5,000 * 1.5' },
-        { label: 'Current Baseline Self-Service Rate', value: '22% (1,650 resolved)', note: 'Users self-solving via static knowledge base' },
-        { label: 'Target Self-Service Resolution Rate (FixFlow)', value: '60% (4,500 resolved)', note: '+38% absolute lift through proactive 1-click fixes' },
-        { label: 'Remaining Tickets Escalated to Human Support', value: '3,000 tickets/mo', note: 'High-complexity policy/custom API tickets' }
+        { label: 'Active Businesses (Baseline)', value: '5,000 businesses', note: 'Base pool of Cheerio active merchants' },
+        { label: 'Monthly Feature Exposure Rate', value: '60.0%', note: '3,000 businesses reached via campaign workflow modal' },
+        { label: 'Adoption Rate Among Businesses Reached', value: '25.0%', note: 'Non-technical merchants actively using FixFlow' },
+        { label: 'Monthly Businesses Adopting FixFlow', value: '750 businesses', note: 'Modeled active adopter cohort (3,000 * 25%)' }
       ]
     },
     {
-      heading: '2. Running Cost & AI Token Economics',
+      heading: '2. Running Cost & AI Token Economics (Dual-Model Benchmark)',
       rows: [
-        { label: 'Underlying LLM Engine', value: 'Gemini 1.5 Flash', note: 'Fastest latency (<800ms) & lowest pricing' },
-        { label: 'Model Input Price', value: '$0.075 per 1M tokens', note: 'Official Google Vertex AI pricing (Sept 2026)' },
-        { label: 'Model Output Price', value: '$0.30 per 1M tokens', note: 'Official Google Vertex AI pricing' },
-        { label: 'Average Input Tokens per Session', value: '1,400 tokens', note: 'Prompt + Cheerio error schema + user context' },
-        { label: 'Average Output Tokens per Session', value: '450 tokens', note: 'Plain English diagnosis + 1-click action payload' },
-        { label: 'AI Cost per Diagnostic Session', value: '$0.00024', note: '((1400 * 0.075) + (450 * 0.30)) / 1,000,000' },
-        { label: 'Total Monthly AI Running Cost (7,500 sessions)', value: '$1.80 / month', note: 'Even with 3x retry buffer: < $5.50/month!' }
+        { label: 'Production Engine (Live): Google Gemini 1.5 Flash', value: '$1.80 / month', note: '1,400 in / 450 out tokens @ $0.075 / $0.30 per 1M across 7,500 queries ($0.00024/query)' },
+        { label: 'Benchmark Model (Google Sheet): GPT-4o mini', value: '$2.34 / month', note: '1,200 in / 350 out tokens @ $0.15 / $0.60 per 1M across 750 adopters (8 calls/mo = $0.00312/adopter)' },
+        { label: 'AI Cost per Active Business / Month', value: '$0.000468 / business', note: 'Fractions of a penny per active business' },
+        { label: 'Hosting & Serverless Ops / Adopter', value: '$0.75 / month', note: 'Dedicated Go container on Render + Neon PostgreSQL connection pool' }
       ]
     },
     {
-      heading: '3. Cost Comparison & Net Monthly Savings',
+      heading: '3. Baseline Support Economics & Net Human Arbitrage',
       rows: [
-        { label: 'Human Support Cost per L1 Ticket', value: '$4.00 / ticket', note: 'Fully loaded support agent salary & overhead ($18-$22/hr @ 4.5 tickets/hr)' },
-        { label: 'Baseline Monthly Human Support Cost (7,500 queries)', value: '$30,000 / month', note: '7,500 * $4.00' },
-        { label: 'Human Support Cost with FixFlow (3,000 queries)', value: '$12,000 / month', note: '3,000 * $4.00' },
-        { label: 'Net Monthly Human Payroll Saved', value: '$18,000 / month', note: '$30,000 - $12,000' },
-        { label: 'Net Annual Savings for Cheerio', value: '$215,978 / year', note: '($18,000 * 12) - AI server cost ($22)' }
+        { label: 'Total Inbound Queries (Baseline)', value: '7,500 queries / mo', note: '5,000 businesses * 1.5 queries/month' },
+        { label: 'Current Baseline Self-Service Rate', value: '22.0% (5,850 human tickets)', note: '$23,400 monthly support cost at $4.00/ticket' },
+        { label: 'Target Self-Service Rate (FixFlow)', value: '60.0% (3,000 human tickets)', note: '$12,000 monthly support cost (+38% absolute lift)' },
+        { label: 'Gross Monthly Support Cost Reduction', value: '$11,400 / month', note: '$23,400 - $12,000 before feature costs' },
+        { label: 'Total Feature Operating Cost (AI + Ops)', value: '$564.84 / month', note: '$2.34 AI inference + (750 adopters * $0.75 ops)' },
+        { label: 'Net Monthly Support Savings', value: '$10,835.16 / month', note: '$11,400 - $564.84 (or $17,998/mo at 100% adoption)' }
       ]
     },
     {
-      heading: '4. Packaging, Billing & Margin',
+      heading: '4. Retention-Related Revenue Impact & Packaging Contribution',
       rows: [
-        { label: 'Recommended Packaging Strategy', value: 'Core Feature (Free in All Paid Plans)', note: 'Reduces churn, increases feature adoption, and directly slashes Cheerio support costs' },
-        { label: 'Optional Enterprise Addon: "VIP Dedicated Escalation"', value: '$29 / business / month', note: 'Guarantees <3 min human specialist SLA on escalated tickets' },
-        { label: 'Gross Margin on Support Feature', value: '98.5%', note: 'Marginal AI cost is fractions of a cent per active business' }
+        { label: 'Eligible Adopting Businesses', value: '750 businesses', note: 'Adopting cohort in Year 1' },
+        { label: 'Retention Improvement (Absolute Monthly Lift)', value: '3.0%', note: 'Reduced onboarding drop-off and frustration churn' },
+        { label: 'Average Cheerio Plan Price / Month', value: '$99.00 / month', note: 'Standard growth tier subscription' },
+        { label: 'Estimated Monthly Recurring Revenue (MRR) Uplift', value: '+$2,227.50 / month', note: '750 adopters * 3.0% * $99.00 (22.5 retained stores)' },
+        { label: 'Annualized Revenue Uplift from Retention', value: '+$26,730.00 / year', note: '$2,227.50 * 12 months' },
+        { label: 'Higher-Tier Packaging Allocation', value: '$8.00 / adopter / mo', note: 'Modeled revenue allocation in Pro/Scale plan' },
+        { label: 'Monthly Contribution Margin', value: '90.6% ($7.25 / adopter)', note: 'Yields $5,435.16/mo net feature contribution' }
       ]
     },
     {
-      heading: '5. Monthly Audits, Guardrails & Alerts',
+      heading: '5. Monthly Audit & Alert Checks (6 Automated Risk Guardrails)',
       rows: [
-        { label: 'Audit Check 1: Resolution Rate Threshold Alert', value: '< 50% SSRR flag', note: 'If self-service drops below 50% in any 48-hr window, triggers engineering review for Meta API changes' },
-        { label: 'Audit Check 2: 7-Day Repeat Ticket Spike Monitor', value: '> 5% Repeat Rate alert', note: 'Flags when a "Verified Fix" was applied but customer still raised a ticket later' },
-        { label: 'Audit Check 3: Token Anomaly & Loop Killswitch', value: '> 10,000 tokens/session killswitch', note: 'Prevents infinite API re-prompts or bot looping' },
-        { label: 'Audit Check 4: Cost vs Value Dashboard', value: 'Monthly PM & Finance Review', note: 'Tracks actual avoided ticket volume vs support payroll budget' }
+        { label: '1. Invoice Reconciliation Alert', value: 'Threshold: $0.01 / 20.0% variance', note: 'Detects discrepancies between cloud provider invoices and logged token usage' },
+        { label: '2. Usage Spike Monitor', value: 'Threshold: 50.0% vs prior period', note: 'Alerts if monthly token consumption surges unexpectedly' },
+        { label: '3. High-Call / Token Loop Killswitch', value: 'Threshold: > 100 calls / session', note: 'Prevents infinite API retry loops (flags session S-104 with 160 calls)' },
+        { label: '4. Repeat-Ticket Failure Monitor', value: 'Threshold: >= 3 tickets / session', note: 'Flags when auto-fix failed repeatedly (inspects S-102 and S-105)' },
+        { label: '5. Missing Logging Auditor', value: 'Threshold: > 0 unlogged calls', note: 'Ensures 100% telemetry coverage across all merchant repair sessions' },
+        { label: '6. Minimum Contribution Margin Alert', value: 'Threshold: < 20.0% margin', note: 'Guarantees the feature remains highly profitable at all scale points' }
       ]
     }
   ]
 }
+

@@ -5,6 +5,8 @@
 > **Repository:** [https://github.com/kartick026/cheerioai.git](https://github.com/kartick026/cheerioai.git)  
 > **Live Interactive App:** [https://cheerioai.vercel.app/](https://cheerioai.vercel.app/)  
 > **Live Backend API (Render):** [https://cheerioai.onrender.com/api/health](https://cheerioai.onrender.com/api/health)  
+> **Financial Model (Google Sheet):** [https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1](https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1)  
+> **ChatGPT Prompt Transcript:** [https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01](https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01)  
 > **Complete Submission Dossier:** [`SUBMISSION.md`](SUBMISSION.md)  
 
 ---

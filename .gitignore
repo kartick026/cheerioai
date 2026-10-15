@@ -25,4 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 *.exe
+*.exe~
 server/*.exe
+server/*.exe~

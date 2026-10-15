@@ -14,7 +14,8 @@ import {
   TrendingUp,
   SlidersHorizontal,
   Copy,
-  Check
+  Check,
+  ExternalLink
 } from 'lucide-react'
 import { PART_1_ANSWERS, PART_3_AI_USAGE, PART_4_NUMBERS } from '../../data/pmAssignmentAnswers'
 import { 
@@ -210,9 +211,20 @@ export const PmEvaluationDrawer: React.FC<PmEvaluationDrawerProps> = ({
             {/* TAB 2: INTERACTIVE FINANCIAL SENSITIVITY CALCULATOR (PART 4) */}
             {activeTab === 'PART_4' && (
               <div className="space-y-5">
-                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-200">
-                  <span className="font-bold text-white block mb-0.5">Interactive Financial & Sensitivity Model (Google Sheet Replica)</span>
-                  Adjust the sliders below to test different adoption cohorts, query volumes, and support cost assumptions in real time!
+                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="font-bold text-white block mb-0.5">Interactive Financial & Sensitivity Model</span>
+                    Adjust the sliders below or explore the validated Google Sheet audit model!
+                  </div>
+                  <a
+                    href={PART_4_NUMBERS.sheetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold transition-all hover:scale-105"
+                  >
+                    <ExternalLink className="w-3 h-3 text-emerald-400" />
+                    <span>Live Google Sheet ↗</span>
+                  </a>
                 </div>
 
                 {/* Live Sliders Container */}
@@ -341,18 +353,40 @@ export const PmEvaluationDrawer: React.FC<PmEvaluationDrawerProps> = ({
                   </div>
                 </div>
 
-                {/* Packaging, Margin & Audit Checks */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs">
-                  <span className="font-bold text-white uppercase tracking-wider block border-b border-slate-800 pb-2">
-                    Pricing, Gross Margin & Monthly Audits
-                  </span>
-                  
-                  <div className="space-y-2 text-slate-300 leading-relaxed">
-                    <p>• <strong>Packaging Recommendation:</strong> Included free in all paid Cheerio plans ($79/mo+). Slashes support payroll and accelerates customer retention without creating adoption friction.</p>
-                    <p>• <strong>Gross Margin on Support Feature:</strong> <strong>98.5%</strong>. Marginal AI cost is less than $0.0003 per query.</p>
-                    <p>• <strong>Audit Alert 1:</strong> Automated alarm if Self-Service Resolution Rate drops below <strong>50%</strong> in any rolling 48-hour window.</p>
-                    <p>• <strong>Audit Alert 2:</strong> Token anomaly killswitch triggers if a diagnostic session exceeds <strong>10,000 tokens</strong>.</p>
+                {/* Structured Sections from Google Sheet Model */}
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Part 4 Structured Audit Tables (Google Sheet Model)
+                    </span>
+                    <a
+                      href={PART_4_NUMBERS.sheetLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-emerald-400 hover:text-emerald-300 underline font-medium"
+                    >
+                      Open Full Sheet ↗
+                    </a>
                   </div>
+
+                  {PART_4_NUMBERS.sections.map((section, sIdx) => (
+                    <div key={sIdx} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
+                      <span className="font-bold text-emerald-300 text-[11px] uppercase tracking-wider block border-b border-slate-900 pb-1.5">
+                        {section.heading}
+                      </span>
+                      <div className="space-y-1.5">
+                        {section.rows.map((row, rIdx) => (
+                          <div key={rIdx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 py-1 border-b border-slate-900/60 last:border-none">
+                            <span className="text-slate-300 font-medium">{row.label}</span>
+                            <div className="text-left sm:text-right">
+                              <span className="text-white font-mono font-bold">{row.value}</span>
+                              {row.note && <span className="block text-[10px] text-slate-500">{row.note}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
               </div>
@@ -368,7 +402,18 @@ export const PmEvaluationDrawer: React.FC<PmEvaluationDrawerProps> = ({
 
                 {/* AI Tools Used */}
                 <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4.5 space-y-2 text-xs">
-                  <span className="font-bold text-white uppercase tracking-wider block mb-1">AI Tools Utilized:</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-white uppercase tracking-wider">AI Tools Utilized:</span>
+                    <a
+                      href="https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-[11px] font-bold transition-all hover:scale-105"
+                    >
+                      <ExternalLink className="w-3 h-3 text-purple-400" />
+                      <span>Live ChatGPT Chat ↗</span>
+                    </a>
+                  </div>
                   {PART_3_AI_USAGE.toolsUsed.map((tool, idx) => (
                     <div key={idx} className="flex items-start justify-between gap-2 border-b border-slate-900 pb-2 last:border-none">
                       <span className="font-bold text-purple-300">{tool.tool}</span>

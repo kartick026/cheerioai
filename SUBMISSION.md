@@ -15,6 +15,8 @@
 | **Live Interactive Prototype** | [https://cheerioai.vercel.app/](https://cheerioai.vercel.app/) | Full-stack interactive web app on Vercel (React 19 + TypeScript + Vite 8) |
 | **Live Go REST API** | [https://cheerioai.onrender.com/api/health](https://cheerioai.onrender.com/api/health) | Live Go 1.25 REST API on Render connected to Neon PostgreSQL |
 | **GitHub Repository** | [https://github.com/kartick026/cheerioai.git](https://github.com/kartick026/cheerioai.git) | Complete codebase with commit history, tests, and documentation |
+| **Google Sheet Financial Model** | [https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1](https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1) | Complete Part 4 Unit Economics, Token Billing & 6-Point Audit Checklist |
+| **ChatGPT Prompt Transcript** | [https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01](https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01) | Live shared ChatGPT conversation log ("Assignment A Overview") |
 | **Database Tier** | `Neon PostgreSQL Serverless` | Hosted in AWS `us-east-2` with PgBouncer connection pooling |
 | **Automated Test Suite** | `npm test` | **40 Passed, 0 Failed** full-stack verification assertions |
 
@@ -174,11 +176,15 @@ flowchart LR
 
 ## 🤖 Part 3: AI Usage Documentation
 
+> 🔗 **Shared ChatGPT Prompt & Evaluation Transcript:**  
+> [https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01](https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01)  
+> *Contains the unedited dialogue, PM roleplay, adversarial product critiques, and unit economics calculations used to develop Cheerio FixFlow.*
+
 ### AI Tools Employed
 1. **Google Gemini 3.8 Flash & 1.5 Flash (Live API):** Real-time diagnostic generation, root-cause translation for non-technical users, and WhatsApp copy creation.
 2. **Google Antigravity & LLM Coding Assistants:** Full-stack architecture implementation, TypeScript type safety, GORM database models, and Rolldown chunk optimization.
-3. **ChatGPT (GPT-4o):** Product Manager roleplay, adversarial problem critique, and prioritization matrix design.
-4. **Formulas & Google Sheets:** Unit economics, token cost models, and human support arbitrage calculations.
+3. **ChatGPT (GPT-4o):** Product Manager roleplay, adversarial problem critique, prioritization matrix design, and review simulation ([View Shared Transcript](https://chatgpt.com/share/6ad0fc68-4a44-83ee-8065-892b63ec5c01)).
+4. **Formulas & Google Sheets:** Unit economics, token cost models, retention uplift, and monthly audit reconciliation ([View Live Financial Model](https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1)).
 
 ### Prompt Analysis
 
@@ -208,46 +214,87 @@ flowchart LR
 
 ## 💰 Part 4: The Numbers & Financial Arbitrage Model
 
-### 1. Guesstimate: Support Volume & Self-Service Resolutions
-- **Active Cheerio Businesses:** 5,000 businesses
-- **Average Support Queries / Business / Month:** 1.5 queries/month
-- **Total Inbound Support Queries:** $5,000 \times 1.5 = \mathbf{7,500\text{ queries/month}}$
-- **Baseline Self-Service Rate (Docs):** 22% (1,650 queries resolved)
-- **Target Self-Service Rate (FixFlow):** **60%** (4,500 queries resolved via 1-click fixes)
-- **Remaining Complex Queries Escalated to Humans:** 40% (3,000 tickets/month)
+> 📊 **Official Part 4 Financial Decision Model (Google Sheet):**  
+> [https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1](https://docs.google.com/spreadsheets/d/1JPS5AtFv6epSatNyO_EmN1uC-V4nztyJ9xA2hc8TkKw/edit?gid=1#gid=1)  
+> *Contains the validated financial model covering Reach & Adoption, Dual-Model Token Pricing, Retention MRR Uplift, Higher-Tier Contribution Margin, and 6 Automated Monthly Audit & Alert Checks.*
+
+### 1. Reach and Adoption Model
+- **Active Businesses (Baseline):** 5,000 businesses
+- **Monthly Feature Exposure Rate:** 60.0% (3,000 businesses exposed to FixFlow in campaign workflow)
+- **Adoption Rate Among Businesses Reached:** 25.0%
+- **Monthly Businesses Adopting FixFlow (Cohort):** **750 active adopting businesses**
 
 ---
 
-### 2. Running Cost & AI Token Economics (Gemini 1.5 Flash)
-- **Model Input Pricing:** \$0.075 per 1,000,000 tokens
-- **Model Output Pricing:** \$0.300 per 1,000,000 tokens
-- **Average Input Tokens per Session:** 1,400 tokens (System prompt + error schema + store context)
-- **Average Output Tokens per Session:** 450 tokens (Plain English explanation + 1-click payload)
+### 2. Running Cost & AI Token Economics (Dual-Model Benchmark)
 
-$$\text{Cost per Query} = \frac{1,400 \times \$0.075 + 450 \times \$0.300}{1,000,000} = \mathbf{\$0.00024\text{ per query}}$$
+| Dimension | Google Gemini 1.5 Flash (Production Live API) | OpenAI GPT-4o mini (Google Sheet Reference) |
+|---|---|---|
+| **Input Price / 1M Tokens** | **$0.075** | $0.150 |
+| **Output Price / 1M Tokens** | **$0.300** | $0.600 |
+| **Input Tokens / Session** | 1,400 tokens | 1,200 tokens |
+| **Output Tokens / Session** | 450 tokens | 350 tokens |
+| **Inference Cost / Session** | **$0.000240** | $0.000390 |
+| **Monthly Calls / Adopter** | Modeled across all 7,500 queries | 8 calls / adopter / month |
+| **Monthly Cost / Adopter** | $0.0024 / adopter | $0.003120 / adopter |
+| **Total Monthly AI Inference Cost** | **$1.80 / month** (all 7,500 queries) | **$2.34 / month** (750 adopters) |
+| **AI Cost / Active Business** | **$0.00036 / business** | **$0.000468 / business** |
 
-$$\text{Total Monthly AI Inference Cost} = 7,500 \times \$0.00024 = \mathbf{\$1.80 / \text{month}}$$
+$$\text{Gemini Inference Cost per Query} = \frac{1,400 \times \$0.075 + 450 \times \$0.300}{1,000,000} = \mathbf{\$0.00024}$$
 
-Even with a 1.5x multi-turn clarification buffer and a \$25/mo dedicated Go serverless container on Render, total operating infrastructure is **under \$30/month**!
+Even factoring in a \$25/mo dedicated Go serverless container on Render and Neon PostgreSQL pooling, total operating infrastructure is **under \$30/month**!
 
 ---
 
-### 3. Human Payroll Arbitrage & Net Savings
+### 3. Retention-Related Revenue Impact
+- **Eligible Adopting Businesses:** 750 businesses
+- **Retention Improvement (Absolute Monthly Lift):** **3.0%** (fewer merchants churn due to onboarding roadblocks)
+- **Average Cheerio Plan Price:** **$99.00 / month**
+- **Monthly Retained Merchants:** $750 \times 3.0\% = \mathbf{22.5\text{ merchants/month}}$
+- **Estimated Monthly Recurring Revenue (MRR) Uplift:**
+  $$\text{MRR Uplift} = 750 \times 3.0\% \times \$99.00 = \mathbf{+\$2,227.50 / \text{month}}$$
+- **Annualized Retention Revenue Uplift:**
+  $$\text{Annualized Uplift} = \$2,227.50 \times 12 = \mathbf{+\$26,730.00 / \text{year}}$$
+
+---
+
+### 4. Billing Recommendation & Higher-Tier Packaging Contribution
+- **Packaging Recommendation:** Core FixFlow features included free in all paid tiers ($79/mo+). Slashes support payroll and accelerates customer retention without creating adoption friction.
+- **Higher-Tier Allocated Revenue:** \$8.00 / adopter / month allocated to automated self-service tier.
+- **Variable Operating Cost:** \$0.75 / adopter / month (AI token cost + serverless ops + DB connections).
+- **Contribution per Adopter:** $\$8.00 - \$0.75 = \mathbf{\$7.25 / \text{adopter / month}}$
+- **Contribution Margin:** $\frac{\$7.25}{\$8.00} = \mathbf{90.6\%}$
+- **Total Monthly Contribution (750 Adopters):** $750 \times \$7.247 = \mathbf{+\$5,435.16 / \text{month}}$
+
+---
+
+### 5. Baseline Support Economics & Net Human Arbitrage
+- **Baseline Inbound Support Queries:** $5,000 \times 1.5 = \mathbf{7,500\text{ queries/month}}$
 - **Human L1 Support Cost per Ticket:** \$4.00 / ticket (Fully loaded support agent salary & overhead @ 4.5 tickets/hr)
-- **Baseline Monthly Support Payroll:** $7,500 \times \$4.00 = \mathbf{\$30,000 / \text{month}}$
-- **New Support Payroll with FixFlow:** $3,000 \times \$4.00 = \mathbf{\$12,000 / \text{month}}$
-- **Net Monthly Human Payroll Saved:** $\mathbf{\$18,000 / \text{month}}$
-- **Net Annual Support Savings:** 
-  $$\text{Net Annual Savings} = (\$18,000 \times 12) - (\$1.80 \times 12) = \mathbf{\$215,978 / \text{year}}$$
+- **Baseline Self-Service Rate (Docs):** 22.0% $\rightarrow$ 5,850 human tickets $\rightarrow$ **\$23,400 / month**
+- **Target Self-Service Rate (FixFlow):** 60.0% $\rightarrow$ 3,000 human tickets $\rightarrow$ **\$12,000 / month**
+- **Gross Monthly Support Cost Reduction:** $\$23,400 - \$12,000 = \mathbf{\$11,400 / \text{month}}$
+- **Feature Operating Cost (AI + Hosting/Ops):** **\$564.84 / month**
+- **Net Monthly Support Savings (Modeled Adopter Cohort):**
+  $$\text{Net Monthly Support Savings} = \$11,400 - \$564.84 = \mathbf{+\$10,835.16 / \text{month}}$$
+- **Net Monthly Savings at 100% Adoption (All 5,000 Businesses):**
+  $$\text{Net Monthly Payroll Savings} = \$18,000 - \$1.80 = \mathbf{+\$17,998.20 / \text{month}}\quad (\mathbf{\$215,978 / \text{year}})$$
 
 ---
 
-### 4. Packaging, Margins & Audit Guardrails
-- **Packaging:** Bundled free in all paid Cheerio plans ($79/mo Growth and above) to maximize retention and eliminate onboarding churn.
-- **Gross Margin:** **98.5% gross margin** on automated support operations.
-- **Audit Guardrail 1 (SSRR Dropoff Alert):** Flags an engineering alert if SSRR falls below 50% in any 48-hour window.
-- **Audit Guardrail 2 (Repeat Ticket Monitor):** Flags if >5% of users file a ticket within 7 days of an automated fix.
-- **Audit Guardrail 3 (Token Loop Killswitch):** Hard cap at 10,000 tokens/session to prevent infinite automated loops.
+### 6. Monthly Audit & Alert Checks (6 Automated Risk Guardrails)
+
+From the official financial model, FixFlow implements 6 automated monthly audit checks to protect company margins and catch edge cases:
+
+| Check # | Audit Guardrail | Threshold | Modeled Status | Action Required |
+|---|---|---|---|---|
+| **1** | **Invoice Reconciliation** | Discrepancy > \$0.01 / 20.0% vs logged tokens | `ALERT` (Sample variance: 126.2%) | Investigate discrepancy between provider invoices and telemetry token counters. |
+| **2** | **Usage Spike Monitor** | Surge > 50.0% vs prior billing period | `OK` (Usage within expected bounds) | Normal growth trajectory; no runaway batch jobs detected. |
+| **3** | **High-Call / Loop Killswitch** | > 100 calls in a single diagnostic session | `ALERT` (Session S-104 had 160 calls) | Inspect session S-104 for infinite recursion or unhandled webhook retry loops. |
+| **4** | **Repeat-Ticket Failure Rate** | $\ge 3$ tickets filed within 30 days of auto-fix | `ALERT` (Sessions S-102 & S-105) | Investigate why 1-click auto-fix failed to resolve the merchant's underlying blocker. |
+| **5** | **Missing-Logging Auditor** | Any diagnostic session with unlogged tokens | `ALERT` (Session S-106 missing telemetry) | Enforce atomic logging wrapper on all API endpoints; zero unlogged calls allowed. |
+| **6** | **Minimum Contribution Margin** | Contribution Margin drops below 20.0% | `OK` (Modeled margin: 90.6%) | Robust unit economics; feature generates healthy gross profit. |
+
 
 ---
 
