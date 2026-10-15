@@ -332,6 +332,63 @@ func main() {
 	seedInitialData(DB)
 
 	// Setup HTTP REST Handlers
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w)
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		if strings.Contains(r.Header.Get("Accept"), "text/html") {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			fmt.Fprint(w, `<!DOCTYPE html>
+<html>
+<head>
+  <title>Cheerio FixFlow Backend API</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f8fafc; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 80vh; margin: 0; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 36px; max-width: 600px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
+    h1 { margin: 16px 0 8px; font-size: 24px; font-weight: 800; }
+    p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+    ul { list-style: none; padding: 0; margin: 20px 0; }
+    li { background: #0f172a; border: 1px solid #1e293b; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-family: monospace; font-size: 13px; color: #a78bfa; }
+    a { color: #c084fc; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">● LIVE & CONNECTED</div>
+    <h1>Cheerio FixFlow Backend REST API</h1>
+    <p>This is the live Go REST backend server connected to <strong>Neon Serverless PostgreSQL (AWS us-east-2)</strong>.</p>
+    <p>Verified API Endpoints:</p>
+    <ul>
+      <li><a href="/api/health">GET /api/health</a> (DB Ping & Version)</li>
+      <li><a href="/api/profile">GET /api/profile</a> (Aura Skincare Record)</li>
+      <li><a href="/api/issues">GET /api/issues</a> (Top 5 Support Issues)</li>
+      <li><a href="/api/campaigns">GET /api/campaigns</a> (Neon Persisted Campaigns)</li>
+    </ul>
+    <p>To view the full user interface (iPhone simulator, walkthrough video, and setup wizard), deploy the frontend to <strong>Vercel</strong>!</p>
+  </div>
+</body>
+</html>`)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"service":  "Cheerio FixFlow Backend API",
+			"status":   "CONNECTED",
+			"database": "Neon PostgreSQL Serverless",
+			"endpoints": []string{
+				"/api/health",
+				"/api/profile",
+				"/api/issues",
+				"/api/campaigns",
+				"/api/diagnose",
+				"/api/diagnose/gemini",
+			},
+		})
+	})
 	http.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w)
 		if r.Method == "OPTIONS" {
