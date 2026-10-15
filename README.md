@@ -3,8 +3,9 @@
 > **Cheerio Product Intern Assignment — Assignment A**  
 > **Candidate:** Kartick  
 > **Repository:** [https://github.com/kartick026/cheerioai.git](https://github.com/kartick026/cheerioai.git)  
-> **Live Dev Server:** `http://localhost:5173/`  
-> **Backend API:** `http://localhost:8080/api/health`  
+> **Live Interactive App:** [https://cheerioai.vercel.app/](https://cheerioai.vercel.app/)  
+> **Live Backend API (Render):** [https://cheerioai.onrender.com/api/health](https://cheerioai.onrender.com/api/health)  
+> **Complete Submission Dossier:** [`SUBMISSION.md`](SUBMISSION.md)  
 
 ---
 
@@ -100,9 +101,10 @@ We maintain an integrated audit suite verifying the entire stack:
 npm test
 ```
 
-### Test Results: 34 Passed, 0 Failed
-- **Backend REST API**: Verified `/api/health`, `/api/profile`, `/api/issues`, and `POST /api/diagnose`.
-- **Neon PostgreSQL**: Verified live connection, schema migration, and row persistence.
+### Test Results: 40 Passed, 0 Failed
+- **Backend REST API**: Verified `/api/health`, `/api/profile`, `/api/issues`, `/api/campaigns`, and `POST /api/diagnose`.
+- **Neon PostgreSQL**: Verified live connection, schema migration, campaign persistence, and row updates.
+- **Secure Server-Side Gemini Proxy**: Verified `/api/diagnose/gemini` executes safely without exposing API keys.
 - **Frontend Vite Server**: Verified HTTP 200 and bundle mounting.
 - **Template Linter**: Verified empty body detection, opt-out check, syntax validation, and fix idempotency.
 - **Financial Model Engine**: Verified baseline outputs, token pricing, and scaling bounds.
